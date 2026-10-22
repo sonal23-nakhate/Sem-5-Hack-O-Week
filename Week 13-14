@@ -1,0 +1,360 @@
+
+# ==========================================
+# WEEK 13-14
+# ENSEMBLE LEARNING TOOLKIT
+# ==========================================
+
+import numpy as np
+import pandas as pd
+
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+from sklearn.ensemble import (
+    BaggingClassifier,
+    RandomForestClassifier,
+    GradientBoostingClassifier
+)
+
+from sklearn.tree import DecisionTreeClassifier
+
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+
+from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
+
+
+print("==========================================")
+print("       ENSEMBLE LEARNING TOOLKIT")
+print("==========================================")
+
+
+# ==========================================
+# 1. LOAD REAL DATASET
+# ==========================================
+
+print("\n1. LOADING DATASET")
+
+data = load_breast_cancer()
+
+X = pd.DataFrame(
+    data.data,
+    columns=data.feature_names
+)
+
+y = pd.Series(data.target)
+
+print("Dataset loaded successfully!")
+print("Number of rows:", X.shape[0])
+print("Number of features:", X.shape[1])
+
+print("\nFirst 5 rows:")
+print(X.head())
+
+
+# ==========================================
+# 2. TRAIN TEST SPLIT
+# ==========================================
+
+print("\n2. TRAIN TEST SPLIT")
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+
+print("Training samples:", X_train.shape[0])
+print("Testing samples:", X_test.shape[0])
+
+
+# ==========================================
+# 3. BAGGING
+# ==========================================
+
+print("\n3. BAGGING")
+
+bagging_model = BaggingClassifier(
+    estimator=DecisionTreeClassifier(random_state=42),
+    n_estimators=50,
+    random_state=42
+)
+
+bagging_model.fit(X_train, y_train)
+
+bagging_train = bagging_model.predict(X_train)
+bagging_test = bagging_model.predict(X_test)
+
+bagging_train_accuracy = accuracy_score(
+    y_train,
+    bagging_train
+)
+
+bagging_test_accuracy = accuracy_score(
+    y_test,
+    bagging_test
+)
+
+print("Training Accuracy:", bagging_train_accuracy)
+print("Testing Accuracy:", bagging_test_accuracy)
+
+
+# ==========================================
+# 4. BOOSTING
+# ==========================================
+
+print("\n4. BOOSTING")
+
+boosting_model = GradientBoostingClassifier(
+    n_estimators=100,
+    learning_rate=0.1,
+    random_state=42
+)
+
+boosting_model.fit(X_train, y_train)
+
+boosting_train = boosting_model.predict(X_train)
+boosting_test = boosting_model.predict(X_test)
+
+boosting_train_accuracy = accuracy_score(
+    y_train,
+    boosting_train
+)
+
+boosting_test_accuracy = accuracy_score(
+    y_test,
+    boosting_test
+)
+
+print("Training Accuracy:", boosting_train_accuracy)
+print("Testing Accuracy:", boosting_test_accuracy)
+
+
+# ==========================================
+# 5. XGBOOST
+# ==========================================
+
+print("\n5. XGBOOST")
+
+xgb_model = XGBClassifier(
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=3,
+    random_state=42,
+    eval_metric="logloss"
+)
+
+xgb_model.fit(X_train, y_train)
+
+xgb_train = xgb_model.predict(X_train)
+xgb_test = xgb_model.predict(X_test)
+
+xgb_train_accuracy = accuracy_score(
+    y_train,
+    xgb_train
+)
+
+xgb_test_accuracy = accuracy_score(
+    y_test,
+    xgb_test
+)
+
+print("Training Accuracy:", xgb_train_accuracy)
+print("Testing Accuracy:", xgb_test_accuracy)
+
+
+# ==========================================
+# 6. LIGHTGBM
+# ==========================================
+
+print("\n6. LIGHTGBM")
+
+lgb_model = LGBMClassifier(
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=3,
+    random_state=42,
+    verbosity=-1
+)
+
+lgb_model.fit(X_train, y_train)
+
+lgb_train = lgb_model.predict(X_train)
+lgb_test = lgb_model.predict(X_test)
+
+lgb_train_accuracy = accuracy_score(
+    y_train,
+    lgb_train
+)
+
+lgb_test_accuracy = accuracy_score(
+    y_test,
+    lgb_test
+)
+
+print("Training Accuracy:", lgb_train_accuracy)
+print("Testing Accuracy:", lgb_test_accuracy)
+
+
+# ==========================================
+# 7. OVERFITTING / UNDERFITTING
+# ==========================================
+
+print("\n7. OVERFITTING AND UNDERFITTING")
+
+print("\nTraining vs Testing Accuracy:")
+
+print(
+    "Bagging   :",
+    bagging_train_accuracy,
+    "->",
+    bagging_test_accuracy
+)
+
+print(
+    "Boosting  :",
+    boosting_train_accuracy,
+    "->",
+    boosting_test_accuracy
+)
+
+print(
+    "XGBoost   :",
+    xgb_train_accuracy,
+    "->",
+    xgb_test_accuracy
+)
+
+print(
+    "LightGBM  :",
+    lgb_train_accuracy,
+    "->",
+    lgb_test_accuracy
+)
+
+print("\nInterpretation:")
+
+if xgb_train_accuracy > xgb_test_accuracy + 0.10:
+    print("XGBoost shows signs of overfitting.")
+elif xgb_train_accuracy < 0.70:
+    print("XGBoost shows signs of underfitting.")
+else:
+    print("XGBoost has reasonable generalization.")
+
+
+# ==========================================
+# 8. L1 REGULARIZATION
+# ==========================================
+
+print("\n8. L1 REGULARIZATION")
+
+l1_model = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(
+        penalty="l1",
+        solver="liblinear",
+        C=1.0,
+        max_iter=1000
+    )
+)
+
+l1_model.fit(X_train, y_train)
+
+l1_prediction = l1_model.predict(X_test)
+
+l1_accuracy = accuracy_score(
+    y_test,
+    l1_prediction
+)
+
+print("L1 Regularization Accuracy:", l1_accuracy)
+
+
+# ==========================================
+# 9. L2 REGULARIZATION
+# ==========================================
+
+print("\n9. L2 REGULARIZATION")
+
+l2_model = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(
+        penalty="l2",
+        solver="liblinear",
+        C=1.0,
+        max_iter=1000
+    )
+)
+
+l2_model.fit(X_train, y_train)
+
+l2_prediction = l2_model.predict(X_test)
+
+l2_accuracy = accuracy_score(
+    y_test,
+    l2_prediction
+)
+
+print("L2 Regularization Accuracy:", l2_accuracy)
+
+
+# ==========================================
+# 10. BIAS-VARIANCE TRADE-OFF
+# ==========================================
+
+print("\n10. BIAS-VARIANCE TRADE-OFF")
+
+print("""
+High Bias:
+- Model is too simple
+- Underfitting
+- Poor training performance
+
+High Variance:
+- Model is too complex
+- Overfitting
+- Training performance is high
+- Testing performance is lower
+
+Goal:
+Balance bias and variance so the model
+generalizes well to new data.
+""")
+
+
+# ==========================================
+# 11. FINAL COMPARISON
+# ==========================================
+
+print("\n==========================================")
+print("             FINAL COMPARISON")
+print("==========================================")
+
+results = pd.DataFrame({
+    "Model": [
+        "Bagging",
+        "Boosting",
+        "XGBoost",
+        "LightGBM",
+        "L1 Logistic Regression",
+        "L2 Logistic Regression"
+    ],
+    "Test Accuracy": [
+        bagging_test_accuracy,
+        boosting_test_accuracy,
+        xgb_test_accuracy,
+        lgb_test_accuracy,
+        l1_accuracy,
+        l2_accuracy
+    ]
+})
+
+print(results)
+w1314.py
+Displaying w1314.py.
