@@ -1,0 +1,116 @@
+import numpy as np
+
+# 1. Vectors & Dot Product
+# Vectors represent features or weights in ML
+vector_a = np.array([2, 4, 6])
+vector_b = np.array([1, 3, 5])
+
+# Dot product measures alignment/similarity: a · b = sum(a_i * b_i)
+dot_product = np.dot(vector_a, vector_b)
+print(f"Vector A: {vector_a}")
+print(f"Vector B: {vector_b}")
+print(f"Dot Product (A · B): {dot_product}\n")
+
+# 2. Matrices & Matrix Multiplication
+# Matrices represent multi-sample datasets or transformation weights
+matrix_X = np.array([[1, 2],
+                     [3, 4]])
+
+matrix_W = np.array([[5, 6],
+                     [7, 8]])
+
+# Matrix multiplication (Dot product of rows and columns)
+matrix_product = np.matmul(matrix_X, matrix_W) # Or matrix_X @ matrix_W
+print("Matrix Product (X @ W):\n", matrix_product, "\n")
+
+# 3. Eigenvalues & Eigenvectors (Intuition-level)
+# Eigenvectors maintain their direction when transformed by a matrix;
+# Eigenvalues scaling factors for those vectors (key for PCA & dimensionality reduction)
+eigenvalues, eigenvectors = np.linalg.eig(matrix_X)
+
+print("Eigenvalues of Matrix X:", eigenvalues.round(3))
+print("Eigenvectors of Matrix X:\n", eigenvectors.round(3))
+# 1. Numerical Derivative (Slope of a 1D function)
+# f(x) = x^2  --> Derivative f'(x) = 2x
+def f(x):
+    return x ** 2
+
+def derivative_f(x, h=1e-5):
+    # Finite difference formula: (f(x+h) - f(x)) / h
+    return (f(x + h) - f(x)) / h
+
+x_val = 3.0
+print(f"Analytical derivative at x=3: {2 * x_val}")
+print(f"Numerical derivative at x=3:  {derivative_f(x_val):.4f}\n")
+
+# 2. Gradient of a 2D Loss Function
+# Loss L(w1, w2) = w1^2 + 3*w2^2
+# Partial derivatives: dL/dw1 = 2*w1, dL/dw2 = 6*w2
+def loss_function(w1, w2):
+    return w1**2 + 3*(w2**2)
+
+def compute_gradient(w1, w2):
+    grad_w1 = 2 * w1
+    grad_w2 = 6 * w2
+    return np.array([grad_w1, grad_w2])
+
+w1, w2 = 2.0, 1.0
+grad = compute_gradient(w1, w2)
+print(f"Loss at (w1=2, w2=1): {loss_function(w1, w2)}")
+print(f"Gradient vector [dL/dw1, dL/dw2]: {grad}\n")
+
+# 3. Chain Rule for Backpropagation Intuition
+# Suppose: y = 2*x + 1,  Loss = y^2
+# We want dLoss/dx = (dLoss/dy) * (dy/dx)
+x_in = 2.0
+
+# Forward pass
+y = 2 * x_in + 1    # y = 5
+loss = y ** 2       # loss = 25
+
+# Backward pass (Chain Rule)
+dloss_dy = 2 * y    # d(y^2)/dy = 2*y = 10
+dy_dx = 2           # d(2x+1)/dx = 2
+
+dloss_dx = dloss_dy * dy_dx  # 10 * 2 = 20
+
+print(f"Forward Pass -> y: {y}, Loss: {loss}")
+print(f"Backward Pass (Chain Rule) -> dLoss/dx: {dloss_dx}")
+
+import matplotlib.pyplot as plt
+
+# Generate toy linear data: y_true = 3 * x
+X = np.array([1.0, 2.0, 3.0, 4.0])
+y_true = np.array([3.0, 6.0, 9.0, 12.0])
+
+# Initialize weight weight w randomly
+w = 0.0
+learning_rate = 0.01
+epochs = 20
+loss_history = []
+
+for epoch in range(epochs):
+    # Forward Pass: Prediction = w * X
+    y_pred = w * X
+
+    # Loss: Mean Squared Error (MSE) = mean((y_pred - y_true)^2)
+    loss = np.mean((y_pred - y_true) ** 2)
+    loss_history.append(loss)
+
+    # Gradient: dMSE/dw = mean(2 * (y_pred - y_true) * X)
+    dw = np.mean(2 * (y_pred - y_true) * X)
+
+    # Gradient Descent update rule
+    w = w - learning_rate * dw
+
+print(f"Optimized Weight parameter w after {epochs} epochs: {w:.4f} (Target: 3.0)")
+
+# Plot loss convergence
+plt.figure(figsize=(7, 4))
+plt.plot(range(1, epochs + 1), loss_history, marker='o', color='purple')
+plt.title("Gradient Descent: Loss Reduction over Epochs")
+plt.xlabel("Epoch")
+plt.ylabel("Mean Squared Error (Loss)")
+plt.grid(True)
+plt.show()
+
